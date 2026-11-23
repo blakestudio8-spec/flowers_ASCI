@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Flores Silvestres ASCII</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #07070c;
+      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .glow-text {
+      text-shadow: 0 0 8px rgba(255, 117, 143, 0.75), 0 0 18px rgba(255, 117, 143, 0.35);
+    }
+  </style>
+</head>
+<body class="relative bg-[#07070c] text-white">
+
+  <!-- Lienzo principal para el arte ASCII -->
+  <canvas id="asciiCanvas"></canvas>
+
+  <!-- Controles discretos en la esquina superior -->
+  <div class="fixed top-4 right-4 z-10 flex items-center gap-2">
+    <button id="windBtn" class="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/15 active:scale-95 border border-white/10 text-xs text-pink-200/80 backdrop-blur-sm transition cursor-pointer">
+      ~ Brisa
+    </button>
+    <button id="replayBtn" class="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/15 active:scale-95 border border-white/10 text-xs text-pink-200/80 backdrop-blur-sm transition cursor-pointer">
+      ↻ Repetir
+    </button>
+  </div>
+
+  <!-- Indicador sutil inferior -->
+  <div class="fixed bottom-3 left-0 right-0 text-center pointer-events-none">
+    <span class="text-[11px] tracking-widest text-white/30">toca la pantalla para enviar una brisa</span>
+  </div>
+
+  <script>
+    /**
+     * Animación generativa de ramo de flores silvestres en arte ASCII.
+     * Adaptable a pantallas verticales (móvil) y horizontales (PC).
+     */
+    const canvas = document.getElementById('asciiCanvas');
+    const ctx = canvas.getContext('2d');
+    const replayBtn = document.getElementById('replayBtn');
+    const windBtn = document.getElementById('windBtn');
+
+    let width = 0;
+    let height = 0;
+    let cols = 0;
+    let rows = 0;
+    let charW = 8;
+    let charH = 13;
+    let fontSize = 12;
+
+    // Estado de la animación e interacción
+    let startTime = performance.now();
+    let windGust = 0;
+    let windTarget = 0;
+    let pointerX = 0;
+    let pointerActive = false;
+
+    // Mensaje estilo máquina de escribir debajo del ramo
+    const dedicationText = "you are my forever soulmate ✨";
+
+    // Definición de las flores del ramo (posiciones relativas, paleta y ritmo)
+    const bouquetFlowers = [
+      { rx: -0.26, ry: -0.22, color: '#ff5e8e', glow: 'rgba(255,94,142,0.55)', center: '#ffd166', radius: 5.2, speed: 1.15, phase: 0.2, curve: -1.2 },
+      { rx: -0.15, ry: -0.34, color: '#c77dff', glow: 'rgba(199,125,255,0.55)', center: '#ffbe0b', radius: 6.0, speed: 0.92, phase: 1.5, curve: -0.7 },
+      { rx:  0.00, ry: -0.41, color: '#ff9e00', glow: 'rgba(255,158,0,0.55)',   center: '#fff3b0', radius: 6.4, speed: 1.00, phase: 2.4, curve:  0.1 },
+      { rx:  0.16, ry: -0.33, color: '#ff4d6d', glow: 'rgba(255,77,109,0.55)',  center: '#ffd166', radius: 5.8, speed: 1.22, phase: 0.8, curve:  0.8 },
+      { rx:  0.27, ry: -0.21, color: '#72efdd', glow: 'rgba(114,239,221,0.55)', center: '#ffbe0b', radius: 5.2, speed: 0.95, phase: 3.1, curve:  1.3 },
+      { rx: -0.20, ry: -0.14, color: '#f72585', glow: 'rgba(247,37,133,0.55)',  center: '#fee440', radius: 4.5, speed: 1.18, phase: 1.9, curve: -1.0 },
+      { rx:  0.20, ry: -0.13, color: '#b5179e', glow: 'rgba(181,23,158,0.55)',  center: '#ffd166', radius: 4.6, speed: 1.08, phase: 2.8, curve:  1.0 },
+      { rx: -0.07, ry: -0.24, color: '#4cc9f0', glow: 'rgba(76,201,240,0.55)',  center: '#ffbe0b', radius: 5.0, speed: 0.88, phase: 0.5, curve: -0.3 },
+      { rx:  0.08, ry: -0.23, color: '#ff758f', glow: 'rgba(255,117,143,0.55)', center: '#fff3b0', radius: 4.8, speed: 1.12, phase: 4.1, curve:  0.4 }
+    ];
+
+    // Pequeños brotes laterales / hojas silvestres
+    const wildSprigs = [
+      { rx: -0.30, ry: -0.10, color: '#52b788', phase: 0.6 },
+      { rx:  0.31, ry: -0.09, color: '#40916c', phase: 2.1 },
+      { rx: -0.11, ry: -0.15, color: '#74c69d', phase: 1.3 },
+      { rx:  0.12, ry: -0.16, color: '#74c69d', phase: 3.4 }
+    ];
+
+    // Estrellas y destellos ASCII en el fondo
+    const stars = Array.from({ length: 55 }, () => ({
+      x: Math.random(),
+      y: Math.random() * 0.85,
+      type: Math.random(),
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.8 + Math.random() * 1.5
+    }));
+
+    // Partículas flotantes (polen luminoso)
+    const pollen = Array.from({ length: 24 }, () => ({
+      x: 0.25 + Math.random() * 0.5,
+      y: 0.25 + Math.random() * 0.55,
+      vx: (Math.random() - 0.5) * 0.02,
+      vy: -0.015 - Math.random() * 0.02,
+      phase: Math.random() * Math.PI * 2
+    }));
+
+    const petalChars = ['@', '#', '%', '&', '*', 'o', '0'];
+
+    /**
+     * Ajusta la cuadrícula ASCII según el tamaño del dispositivo
+     */
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Escalar tipografía ligeramente para móviles muy estrechos
+      const isMobile = width < 600;
+      fontSize = isMobile ? 11 : 13;
+      charW = isMobile ? 7.2 : 8.5;
+      charH = isMobile ? 12 : 14;
+
+      cols = Math.floor(width / charW);
+      rows = Math.floor(height / charH);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    /**
+     * Dibuja un carácter en una celda de la cuadrícula ASCII
+     */
+    function drawChar(ch, col, row, color, shadowColor = null) {
+      if (col < 0 || col >= cols || row < 0 || row >= rows) return;
+      ctx.fillStyle = color;
+      if (shadowColor) {
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = 6;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillText(ch, col * charW, row * charH);
+    }
+
+    /**
+     * Dibuja los destellos y constelaciones en el cielo nocturno
+     */
+    function drawBackgroundStars(t) {
+      stars.forEach(s => {
+        const pulse = 0.2 + 0.8 * Math.abs(Math.sin(t * s.speed + s.phase));
+        const c = Math.floor(s.x * cols);
+        const r = Math.floor(s.y * rows);
+
+        if (s.type > 0.86) {
+          // Destello de 4 puntos estilo TikTok
+          const colStr = `rgba(210, 225, 255, ${(pulse * 0.75).toFixed(2)})`;
+          drawChar('·', c, r - 1, colStr);
+          drawChar('·', c - 1, r, colStr);
+          drawChar('+', c, r, `rgba(255, 255, 255, ${pulse.toFixed(2)})`);
+          drawChar('·', c + 1, r, colStr);
+          drawChar('·', c, r + 1, colStr);
+        } else {
+          const ch = s.type > 0.45 ? '*' : '·';
+          drawChar(ch, c, r, `rgba(200, 215, 255, ${(pulse * 0.65).toFixed(2)})`);
+        }
+      });
+    }
+
+    /**
+     * Dibuja una flor ASCII con pétalos ondulantes y apertura progresiva
+     */
+    function drawFlower(cx, cy, f, t, bloomProgress) {
+      if (bloomProgress <= 0) return;
+      const r = f.radius * bloomProgress;
+      const aspect = 1.38; // Compensa la proporción alto/ancho de fuente monoespaciada
+
+      for (let dy = -Math.ceil(r + 1); dy <= Math.ceil(r + 1); dy++) {
+        for (let dx = -Math.ceil((r + 1) * aspect); dx <= Math.ceil((r + 1) * aspect); dx++) {
+          const nx = dx / aspect;
+          const dist = Math.sqrt(nx * nx + dy * dy);
+          const angle = Math.atan2(dy, nx);
+          const petalWave = Math.sin(angle * 5 + t * 0.9 + f.phase) * (0.95 * bloomProgress);
+
+          if (dist <= 1.35 * bloomProgress) {
+            drawChar('0', Math.round(cx + dx), Math.round(cy + dy), f.center, f.center);
+          } else if (dist <= r + petalWave) {
+            const normDist = dist / (r + 1.2);
+            const charIdx = Math.floor(normDist * petalChars.length) % petalChars.length;
+            drawChar(petalChars[charIdx], Math.round(cx + dx), Math.round(cy + dy), f.color, f.glow);
+          }
+        }
+      }
+    }
+
+    /**
+     * Dibuja el lazo ASCII en la base del ramo
+     */
+    function drawRibbon(baseX, baseY, grow) {
+      if (grow < 0.15) return;
+      const ribbonColor = '#ff758f';
+      const knotColor = '#ff4d6d';
+
+      // Nudo central
+      drawChar('<', baseX - 2, baseY - 2, ribbonColor, knotColor);
+      drawChar('=', baseX - 1, baseY - 2, ribbonColor, knotColor);
+      drawChar('#', baseX,     baseY - 2, knotColor, knotColor);
+      drawChar('=', baseX + 1, baseY - 2, ribbonColor, knotColor);
+      drawChar('>', baseX + 2, baseY - 2, ribbonColor, knotColor);
+
+      // Cintas colgantes
+      drawChar('/',  baseX - 1, baseY - 1, ribbonColor);
+      drawChar('\\', baseX + 1, baseY - 1, ribbonColor);
+      drawChar('/',  baseX - 2, baseY,     ribbonColor);
+      drawChar('\\', baseX + 2, baseY,     ribbonColor);
+    }
+
+    /**
+     * Bucle principal de renderizado
+     */
+    function render(now) {
+      const t = (now - startTime) / 1000;
+
+      // Suavizado de ráfaga de viento
+      windGust += (windTarget - windGust) * 0.06;
+      windTarget *= 0.96;
+
+      // Progreso de crecimiento inicial (0 a 1 en 2.4 segundos)
+      const rawGrow = Math.min(1, t / 2.4);
+      const grow = 1 - Math.pow(1 - rawGrow, 3); // Ease-out cúbico
+
+      // Limpiar fondo
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#07070c';
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = `bold ${fontSize}px "Courier New", Courier, monospace`;
+
+      // 1. Estrellas
+      drawBackgroundStars(t);
+
+      // Punto de origen del ramo (base inferior centrada)
+      const baseX = Math.floor(cols / 2);
+      const baseY = Math.floor(rows * 0.84);
+      const scale = Math.min(cols * 0.92, rows * 1.18);
+
+      // 2. Brotes verdes secundarios
+      wildSprigs.forEach(sp => {
+        const sway = (Math.sin(t * 1.1 + sp.phase) * 1.8 + windGust * 3.5) * grow;
+        const tx = baseX + sp.rx * scale + sway;
+        const ty = baseY + sp.ry * scale;
+        const cx = baseX + (tx - baseX) * grow;
+        const cy = baseY + (ty - baseY) * grow;
+
+        const steps = 20;
+        for (let i = 0; i <= steps; i++) {
+          const p = i / steps;
+          const sx = baseX + (cx - baseX) * p + Math.sin(p * Math.PI) * (sp.rx * 6);
+          const sy = baseY + (cy - baseY) * p;
+          drawChar(p > 0.8 ? '*' : ':', Math.round(sx), Math.round(sy), sp.color);
+        }
+      });
+
+      // 3. Tallos principales y flores
+      bouquetFlowers.forEach(f => {
+        const pointerOffset = pointerActive ? ((pointerX / width) - 0.5) * 4.5 : 0;
+        const sway = (Math.sin(t * f.speed + f.phase) * 2.1 + windGust * 5.5 + pointerOffset) * grow;
+
+        const targetX = baseX + f.rx * scale + sway;
+        const targetY = baseY + f.ry * scale;
+
+        const curX = baseX + (targetX - baseX) * grow;
+        const curY = baseY + (targetY - baseY) * grow;
+
+        // Tallo curvo compuesto por caracteres ASCII
+        const steps = 38;
+        for (let i = 0; i <= steps; i++) {
+          const p = i / steps;
+          const arch = Math.sin(p * Math.PI) * (f.curve * 2.2);
+          const sx = baseX + (curX - baseX) * p + arch;
+          const sy = baseY + (curY - baseY) * p;
+
+          const dx = curX - baseX;
+          let stemChar = '|';
+          if (dx > 2.5) stemChar = '/';
+          else if (dx < -2.5) stemChar = '\\';
+
+          const stemColor = p > 0.65 ? '#52b788' : p > 0.3 ? '#40916c' : '#2d6a4f';
+          drawChar(stemChar, Math.round(sx), Math.round(sy), stemColor);
+
+          // Hojitas a mitad de tallo
+          if (i === 18 && grow > 0.5) {
+            drawChar('~', Math.round(sx) - 1, Math.round(sy), '#74c69d');
+            drawChar('~', Math.round(sx) + 1, Math.round(sy), '#74c69d');
+          }
+        }
+
+        // Apertura progresiva de la flor a partir del 35% de crecimiento
+        const bloom = Math.max(0, Math.min(1, (grow - 0.32) / 0.68));
+        drawFlower(curX, curY, f, t, bloom);
+      });
+
+      // 4. Lazo en la base del ramo
+      drawRibbon(baseX, baseY, grow);
+
+      // 5. Polen flotante luminoso
+      if (grow > 0.6) {
+        pollen.forEach(p => {
+          p.y += p.vy * 0.016;
+          p.x += (p.vx + windGust * 0.008) * 0.016;
+          if (p.y < 0.15) {
+            p.y = 0.78;
+            p.x = 0.28 + Math.random() * 0.44;
+          }
+          const alpha = 0.35 + 0.55 * Math.sin(t * 2 + p.phase);
+          drawChar('·', Math.floor(p.x * cols), Math.floor(p.y * rows), `rgba(255, 225, 130, ${alpha.toFixed(2)})`);
+        });
+      }
+
+      // 6. Texto deductorio tipo máquina de escribir debajo del ramo
+      if (t > 1.4) {
+        const visibleChars = Math.min(dedicationText.length, Math.floor((t - 1.4) * 16));
+        const currentStr = dedicationText.slice(0, visibleChars);
+        const textRow = Math.min(rows - 3, baseY + 3);
+        const startCol = Math.floor((cols - dedicationText.length) / 2);
+
+        for (let i = 0; i < currentStr.length; i++) {
+          drawChar(currentStr[i], startCol + i, textRow, '#ff8fa3', 'rgba(255, 117, 143, 0.7)');
+        }
+        // Cursor parpadeante al final
+        if (Math.floor(t * 2.5) % 2 === 0) {
+          drawChar('_', startCol + currentStr.length, textRow, '#ffb3c1');
+        }
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    // Interacciones táctiles y de ratón
+    function triggerWind(dir = 1) {
+      windTarget = dir * (1.2 + Math.random() * 0.8);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const dir = e.clientX < width / 2 ? 1 : -1;
+      triggerWind(dir);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      pointerX = e.clientX;
+      pointerActive = true;
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        const dir = e.touches[0].clientX < width / 2 ? 1 : -1;
+        triggerWind(dir);
+      }
+    }, { passive: true });
+
+    windBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerWind(Math.random() > 0.5 ? 1 : -1);
+    });
+
+    replayBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startTime = performance.now();
+      windGust = 0;
+      windTarget = 0;
+    });
+
+    // Arrancar animación
+    window.onload = () => {
+      requestAnimationFrame(render);
+    };
+  </script>
+</body>
+</html>
