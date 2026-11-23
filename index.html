@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ramo de Rosas y Peonías ASCII</title>
+  <title>hola</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
@@ -75,35 +75,36 @@
     let pointerX = 0;
     let pointerActive = false;
 
-    // Mensaje estilo máquina de escribir debajo del ramo
-    const dedicationText = "para ti, porque las flores de verdad se marchitan ✨";
+    // Mensaje estilo máquina de escribir debajo del ramo con corazón
+    const dedicationText = "solo me ha dado tiempo a esto, te quierooooooo ♥";
 
     // Definición de rosas (espirales carmesí/rubí) y peonías (voluminosas rosa pastel/magenta/coral)
+    // Punto medio: ramo unido y armonioso con aire suficiente para distinguir cada flor
     const bouquetFlowers = [
       // Peonía grande superior izquierda (rosa pastel suave)
-      { type: 'peony', rx: -0.20, ry: -0.32, core: '#ff4d8d', inner: '#ff85a1', mid: '#ffb3c6', outer: '#ffe5ec', glow: 'rgba(255,143,163,0.45)', radius: 6.4, speed: 0.90, phase: 1.2, curve: -0.9 },
+      { type: 'peony', rx: -0.14, ry: -0.34, core: '#ff4d8d', inner: '#ff85a1', mid: '#ffb3c6', outer: '#ffe5ec', glow: 'rgba(255,143,163,0.45)', radius: 5.1, speed: 0.90, phase: 1.2, curve: -0.8 },
       // Rosa central alta (carmesí profundo y escarlata)
-      { type: 'rose',  rx:  0.00, ry: -0.40, core: '#590d22', inner: '#a4133c', mid: '#d90429', outer: '#ff4d6d', glow: 'rgba(217,4,41,0.55)',    radius: 5.4, speed: 1.02, phase: 2.3, curve:  0.1 },
+      { type: 'rose',  rx:  0.00, ry: -0.43, core: '#590d22', inner: '#a4133c', mid: '#d90429', outer: '#ff4d6d', glow: 'rgba(217,4,41,0.55)',    radius: 4.4, speed: 1.02, phase: 2.3, curve:  0.1 },
       // Peonía grande superior derecha (magenta y coral)
-      { type: 'peony', rx:  0.21, ry: -0.31, core: '#c9184a', inner: '#ff477e', mid: '#ff7096', outer: '#ffccd5', glow: 'rgba(255,71,126,0.45)',  radius: 6.3, speed: 0.95, phase: 0.5, curve:  1.0 },
+      { type: 'peony', rx:  0.15, ry: -0.33, core: '#c9184a', inner: '#ff477e', mid: '#ff7096', outer: '#ffccd5', glow: 'rgba(255,71,126,0.45)',  radius: 5.0, speed: 0.95, phase: 0.5, curve:  0.9 },
       // Rosa lateral izquierda (rojo rubí intenso)
-      { type: 'rose',  rx: -0.28, ry: -0.19, core: '#641220', inner: '#b21e35', mid: '#e01e37', outer: '#ff758f', glow: 'rgba(224,30,55,0.50)',   radius: 4.9, speed: 1.15, phase: 3.1, curve: -1.3 },
+      { type: 'rose',  rx: -0.22, ry: -0.20, core: '#641220', inner: '#b21e35', mid: '#e01e37', outer: '#ff758f', glow: 'rgba(224,30,55,0.50)',   radius: 4.1, speed: 1.15, phase: 3.1, curve: -1.1 },
       // Peonía central frondosa (coral y rubor pastel)
-      { type: 'peony', rx:  0.00, ry: -0.22, core: '#d81159', inner: '#ff5d8f', mid: '#ff9ebb', outer: '#fff0f3', glow: 'rgba(255,158,187,0.50)', radius: 6.6, speed: 0.85, phase: 1.8, curve: -0.2 },
+      { type: 'peony', rx:  0.00, ry: -0.22, core: '#d81159', inner: '#ff5d8f', mid: '#ff9ebb', outer: '#fff0f3', glow: 'rgba(255,158,187,0.50)', radius: 5.2, speed: 0.85, phase: 1.8, curve: -0.2 },
       // Rosa lateral derecha (escarlata vibrante)
-      { type: 'rose',  rx:  0.29, ry: -0.18, core: '#590d22', inner: '#9b0000', mid: '#d00000', outer: '#ff5c8a', glow: 'rgba(208,0,0,0.50)',     radius: 4.9, speed: 1.18, phase: 2.7, curve:  1.3 },
+      { type: 'rose',  rx:  0.23, ry: -0.19, core: '#590d22', inner: '#9b0000', mid: '#d00000', outer: '#ff5c8a', glow: 'rgba(208,0,0,0.50)',     radius: 4.1, speed: 1.18, phase: 2.7, curve:  1.1 },
       // Rosa baja izquierda (carmesí)
-      { type: 'rose',  rx: -0.14, ry: -0.13, core: '#4a0404', inner: '#800f2f', mid: '#c9184a', outer: '#ff4d6d', glow: 'rgba(201,24,74,0.50)',   radius: 4.5, speed: 1.10, phase: 0.9, curve: -0.7 },
+      { type: 'rose',  rx: -0.11, ry: -0.11, core: '#4a0404', inner: '#800f2f', mid: '#c9184a', outer: '#ff4d6d', glow: 'rgba(201,24,74,0.50)',   radius: 3.8, speed: 1.10, phase: 0.9, curve: -0.6 },
       // Peonía baja derecha (rosa rubor suave)
-      { type: 'peony', rx:  0.15, ry: -0.12, core: '#b5179e', inner: '#f72585', mid: '#ff8fab', outer: '#ffe5ec', glow: 'rgba(247,37,133,0.45)',  radius: 5.3, speed: 1.05, phase: 3.8, curve:  0.8 }
+      { type: 'peony', rx:  0.12, ry: -0.11, core: '#b5179e', inner: '#f72585', mid: '#ff8fab', outer: '#ffe5ec', glow: 'rgba(247,37,133,0.45)',  radius: 4.3, speed: 1.05, phase: 3.8, curve:  0.7 }
     ];
 
-    // Pequeños brotes laterales / hojas silvestres
+    // Pequeños brotes laterales / hojas silvestres ajustados al nuevo ancho
     const wildSprigs = [
-      { rx: -0.30, ry: -0.10, color: '#52b788', phase: 0.6 },
-      { rx:  0.31, ry: -0.09, color: '#40916c', phase: 2.1 },
-      { rx: -0.11, ry: -0.15, color: '#74c69d', phase: 1.3 },
-      { rx:  0.12, ry: -0.16, color: '#74c69d', phase: 3.4 }
+      { rx: -0.27, ry: -0.09, color: '#52b788', phase: 0.6 },
+      { rx:  0.28, ry: -0.08, color: '#40916c', phase: 2.1 },
+      { rx: -0.09, ry: -0.30, color: '#74c69d', phase: 1.3 },
+      { rx:  0.10, ry: -0.31, color: '#74c69d', phase: 3.4 }
     ];
 
     // Estrellas y destellos ASCII en el fondo
@@ -117,7 +118,7 @@
 
     // Partículas flotantes (polen luminoso)
     const pollen = Array.from({ length: 24 }, () => ({
-      x: 0.25 + Math.random() * 0.5,
+      x: 0.28 + Math.random() * 0.44,
       y: 0.25 + Math.random() * 0.55,
       vx: (Math.random() - 0.5) * 0.02,
       vy: -0.015 - Math.random() * 0.02,
@@ -286,32 +287,28 @@
       // 1. Estrellas
       drawBackgroundStars(t);
 
-      // Punto de origen del ramo (base inferior centrada)
       const baseX = Math.floor(cols / 2);
-      const baseY = Math.floor(rows * 0.84);
-      const scale = Math.min(cols * 0.92, rows * 1.18);
+      const baseY = Math.floor(rows * 0.86);
+      const scale = Math.min(cols * 0.95, rows * 1.15);
 
-      // 2. Brotes verdes secundarios
-      wildSprigs.forEach(sp => {
-        const sway = (Math.sin(t * 1.1 + sp.phase) * 1.8 + windGust * 3.5) * grow;
-        const tx = baseX + sp.rx * scale + sway;
-        const ty = baseY + sp.ry * scale;
-        const cx = baseX + (tx - baseX) * grow;
-        const cy = baseY + (ty - baseY) * grow;
-
-        const steps = 20;
+      // 2. Brotes verdes laterales
+      wildSprigs.forEach(s => {
+        const sway = Math.sin(t * 1.3 + s.phase) * 1.5 + windGust * 3.5;
+        const tx = baseX + (s.rx * scale + sway) * grow;
+        const ty = baseY + (s.ry * scale) * grow;
+        const steps = 16;
         for (let i = 0; i <= steps; i++) {
           const p = i / steps;
-          const sx = baseX + (cx - baseX) * p + Math.sin(p * Math.PI) * (sp.rx * 6);
-          const sy = baseY + (cy - baseY) * p;
-          drawChar(p > 0.8 ? '*' : ':', Math.round(sx), Math.round(sy), sp.color);
+          const sx = baseX + (tx - baseX) * p;
+          const sy = baseY + (ty - baseY) * p;
+          drawChar(p > 0.7 ? '*' : '.', Math.round(sx), Math.round(sy), s.color);
         }
       });
 
-      // 3. Tallos principales y flores
-      bouquetFlowers.forEach(f => {
+      // 3. Tallos principales primero (para que nunca tapen la cara de una flor cercana)
+      const flowerPositions = bouquetFlowers.map(f => {
         const pointerOffset = pointerActive ? ((pointerX / width) - 0.5) * 4.5 : 0;
-        const sway = (Math.sin(t * f.speed + f.phase) * 2.1 + windGust * 5.5 + pointerOffset) * grow;
+        const sway = (Math.sin(t * f.speed + f.phase) * 1.9 + windGust * 5.0 + pointerOffset) * grow;
 
         const targetX = baseX + f.rx * scale + sway;
         const targetY = baseY + f.ry * scale;
@@ -323,7 +320,7 @@
         const steps = 38;
         for (let i = 0; i <= steps; i++) {
           const p = i / steps;
-          const arch = Math.sin(p * Math.PI) * (f.curve * 2.2);
+          const arch = Math.sin(p * Math.PI) * (f.curve * 2.4);
           const sx = baseX + (curX - baseX) * p + arch;
           const sy = baseY + (curY - baseY) * p;
 
@@ -342,8 +339,30 @@
           }
         }
 
-        // Apertura progresiva de la flor a partir del 35% de crecimiento
-        const bloom = Math.max(0, Math.min(1, (grow - 0.32) / 0.68));
+        return { f, curX, curY };
+      });
+
+      // 3b. Cabezas de flores dibujadas encima de todos los tallos con fondo limpio
+      const bloom = Math.max(0, Math.min(1, (grow - 0.32) / 0.68));
+      flowerPositions.forEach(({ f, curX, curY }) => {
+        // Limpiar un pequeño halo oscuro detrás de cada flor para que los tallos de detrás no ensucien los pétalos
+        if (bloom > 0.2) {
+          const clearR = f.radius * bloom * 0.90;
+          const aspect = 1.42;
+          for (let dy = -Math.ceil(clearR); dy <= Math.ceil(clearR); dy++) {
+            for (let dx = -Math.ceil(clearR * aspect); dx <= Math.ceil(clearR * aspect); dx++) {
+              if ((dx / aspect) ** 2 + dy ** 2 <= clearR ** 2) {
+                const col = Math.round(curX + dx);
+                const row = Math.round(curY + dy);
+                if (col >= 0 && col < cols && row >= 0 && row < rows) {
+                  ctx.shadowBlur = 0;
+                  ctx.fillStyle = '#07070c';
+                  ctx.fillText('█', col * charW, row * charH);
+                }
+              }
+            }
+          }
+        }
         drawFlower(curX, curY, f, t, bloom);
       });
 
@@ -369,14 +388,55 @@
         const visibleChars = Math.min(dedicationText.length, Math.floor((t - 1.4) * 16));
         const currentStr = dedicationText.slice(0, visibleChars);
         const textRow = Math.min(rows - 3, baseY + 3);
-        const startCol = Math.floor((cols - dedicationText.length) / 2);
+        const maxLineChars = Math.max(20, cols - 4);
 
-        for (let i = 0; i < currentStr.length; i++) {
-          drawChar(currentStr[i], startCol + i, textRow, '#ff8fa3', 'rgba(255, 117, 143, 0.7)');
-        }
-        // Cursor parpadeante al final
-        if (Math.floor(t * 2.5) % 2 === 0) {
-          drawChar('_', startCol + currentStr.length, textRow, '#ffb3c1');
+        if (dedicationText.length <= maxLineChars) {
+          const startCol = Math.max(1, Math.floor((cols - dedicationText.length) / 2));
+          for (let i = 0; i < currentStr.length; i++) {
+            const isHeart = currentStr[i] === '♥';
+            drawChar(
+              currentStr[i],
+              startCol + i,
+              textRow,
+              isHeart ? '#ff2a5f' : '#ff8fa3',
+              isHeart ? 'rgba(255, 42, 95, 0.95)' : 'rgba(255, 117, 143, 0.7)'
+            );
+          }
+          if (Math.floor(t * 2.5) % 2 === 0) {
+            drawChar('_', startCol + currentStr.length, textRow, '#ffb3c1');
+          }
+        } else {
+          // Dividir en dos líneas si el móvil es muy estrecho para que no se corte
+          const splitIdx = dedicationText.lastIndexOf(' ', Math.floor(dedicationText.length * 0.65));
+          const line1Full = dedicationText.slice(0, splitIdx);
+          const line2Full = dedicationText.slice(splitIdx + 1);
+
+          const line1 = currentStr.slice(0, Math.min(currentStr.length, line1Full.length));
+          const line2 = currentStr.length > line1Full.length + 1 ? currentStr.slice(line1Full.length + 1) : '';
+
+          const startCol1 = Math.max(1, Math.floor((cols - line1Full.length) / 2));
+          const startCol2 = Math.max(1, Math.floor((cols - line2Full.length) / 2));
+
+          for (let i = 0; i < line1.length; i++) {
+            drawChar(line1[i], startCol1 + i, textRow - 1, '#ff8fa3', 'rgba(255, 117, 143, 0.7)');
+          }
+          for (let i = 0; i < line2.length; i++) {
+            const isHeart = line2[i] === '♥';
+            drawChar(
+              line2[i],
+              startCol2 + i,
+              textRow + 1,
+              isHeart ? '#ff2a5f' : '#ff8fa3',
+              isHeart ? 'rgba(255, 42, 95, 0.95)' : 'rgba(255, 117, 143, 0.7)'
+            );
+          }
+          if (Math.floor(t * 2.5) % 2 === 0) {
+            if (currentStr.length <= line1Full.length) {
+              drawChar('_', startCol1 + line1.length, textRow - 1, '#ffb3c1');
+            } else {
+              drawChar('_', startCol2 + line2.length, textRow + 1, '#ffb3c1');
+            }
+          }
         }
       }
 
